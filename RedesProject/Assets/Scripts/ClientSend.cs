@@ -29,8 +29,9 @@ public class ClientSend : MonoBehaviour
     void OnSubmit()
     {
         // Get data from Input Fields
-        inputData1 = inputField1.text;
-        inputData2 = inputField2.text;
+        inputData1 = inputField1.text.Trim();
+        inputData2 = inputField2.text.Trim();
+
 
         // Check the selected option in the dropdown
         if (dropdown.value == 2) // Assuming the third option (index 2) ignores the third input field
@@ -39,7 +40,7 @@ public class ClientSend : MonoBehaviour
         }
         else
         {
-            inputData3 = inputField3.text;
+            inputData3 = inputField3.text.Trim();
         }
 
         // Store or process the data as needed
