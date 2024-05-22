@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
+using UnityEngine.UIElements;
+using Button = UnityEngine.UI.Button;
 
 public class ClientSend : MonoBehaviour
 {
@@ -19,7 +20,7 @@ public class ClientSend : MonoBehaviour
     private string inputData1;
     private string inputData2;
     private string inputData3;
-
+    
     void Start()
     {
         // Assign the Button click event
