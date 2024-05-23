@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -56,6 +57,17 @@ public class ClientSend : MonoBehaviour
         Debug.Log("URL: " + inputData1);
         Debug.Log("HEADER: " + inputData2);
         Debug.Log("BODY: " + inputData3);
+
+
+        string[] uri = inputData1.Split("/", StringSplitOptions.RemoveEmptyEntries);
+        uri[0] = uri[0].Trim();
+        if (uri[0] == "localhost")
+        {
+            uri[0] = "127.0.0.1"; 
+        }
+
+        HTTPRequest request = new HTTPRequest();
+        request.ParseHeader(inputData1 + "\n" + inputData2 + "\r\n\r\n" + inputData3); 
 
         // Create call depends of the type
         switch (dropdown.options[dropdown.value].text)

@@ -54,6 +54,7 @@ class Program : MonoBehaviour
         getIndex.SetConnectionHeader("keep-alive");
         getIndex.SetHeader("Authorization", "Bearer admin_token");
         //getIndex.SetBody("username=admin&password=admin");
+        //getIndex.SetBody("{\"Name\":\"Admin2\", \"Password\":\"hola\", \"Salt\":\"akjshdm\"}");
         getIndex.SetBody("");
         getIndex.SetContentLength();
         

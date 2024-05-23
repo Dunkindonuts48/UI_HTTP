@@ -9,6 +9,9 @@ public class ServerSend : MonoBehaviour
     // Reference to the TextMeshPro Text Component
     public TMP_Text textMeshPro;
 
+    public string messagePool = "";
+    private object _lock = new object();  
+    
     public static ServerSend instance = null; 
     
     public void Awake()
@@ -26,6 +29,18 @@ public class ServerSend : MonoBehaviour
     // Method to update the TextMeshPro text
     public void UpdateText(string newText)
     {
-        textMeshPro.text = newText;
+        textMeshPro.text += newText;
+    }
+
+    public void Update()
+    {
+        lock (_lock)
+        {
+            if (messagePool.Length > 0)
+            {
+                UpdateText(messagePool);
+                messagePool = ""; 
+            }
+        }
     }
 }

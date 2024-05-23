@@ -1,13 +1,20 @@
 using System;
+using UnityEngine;
 
 namespace HTTP_NET_Project
 {
+    [Serializable]
     class Cat
     {
-        private string name; // Key to search
+        //[SerializeField]
+            private string name; // Key to search
+      //  [SerializeField]
         private string breed;
+    //    [SerializeField]
         private string gender;
+  //      [SerializeField]
         private int age;
+//        [SerializeField]
         private string owner;
 
         public Cat(string name, string breed, string gender, int age, string owner)
@@ -56,6 +63,12 @@ namespace HTTP_NET_Project
                 $"Gender: {Gender}\n" +
                 $"Age: {Age}\n" +
                 $"Owner: {Owner}";
+        }
+
+        public string ToJson()
+        {
+            // Implement here
+            return JsonUtility.ToJson(this); 
         }
     }
 }

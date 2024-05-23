@@ -12,8 +12,10 @@ using System.Collections.Generic;
 //using UnityEngine; 
 
 using HTTP_NET_Project;
+using Newtonsoft.Json;
 using UnityEngine;
 
+[Serializable]
 public class HTTPServer
 {
     // --------- CONNECTION VARIABLES ---------
@@ -238,7 +240,7 @@ public class HTTPServer
                         try
                         {
                             //json = JsonSerializer.Serialize(_userManager.GetUsersDictionary(), new JsonSerializerOptions { WriteIndented = true });
-                            json = JsonUtility.ToJson(_userManager.GetUsersDictionary(), true);         
+                            json = JsonConvert.SerializeObject(_userManager.GetUsersDictionary());         
                         }
                         catch (NotSupportedException e)
                         {
@@ -267,7 +269,7 @@ public class HTTPServer
                     if (user != null)
                     {
                         response.SetStatusLine(httpVersion, 200);
-                        string bodyJson = JsonUtility.ToJson(user); 
+                        string bodyJson = JsonConvert.SerializeObject(user); 
                         //response.SetBody(JsonSerializer.Serialize(new { user = user}));
                     }
                     else
@@ -303,7 +305,11 @@ public class HTTPServer
                             try
                             {
                                 //json = JsonSerializer.Serialize(listCats, new JsonSerializerOptions { WriteIndented = true });
-                                json = JsonUtility.ToJson(listCats, true); 
+                                json = JsonConvert.SerializeObject(listCats);
+                                // foreach (Cat c in listCats)
+                                // {
+                                //     json += c.ToJson(); 
+                                // }
                             }
                             catch (NotSupportedException e)
                             {
@@ -334,7 +340,7 @@ public class HTTPServer
                                 if (cat.Name == catName)
                                 {
                                     //string json = JsonSerializer.Serialize(cat);
-                                    string json = JsonUtility.ToJson(cat, true); 
+                                    string json = JsonConvert.SerializeObject(cat); 
                                     response.SetStatusLine(1.1f, 200);
                                     response.SetHeader("Server", "MyServer/1.0.0 (Windows)");
                                     response.SetHeader("Content-Language", "en-US, es-ES");
@@ -371,7 +377,7 @@ public class HTTPServer
                         response.SetHeader("Content-Type", HTTPHeader._mimeTable[Path.GetExtension(uri).Trim()]);
                         response.SetCacheControl(60);
                         //if(method == "GET") response.SetBody(File.ReadAllText(findPath));     // Attach response content
-                        if (uri.Trim().Contains("text/html") || uri.Trim().Contains("application/json") || uri.Trim().Contains("text/xml"))
+                        if (fileExtension == ".html" || fileExtension == ".txt" || fileExtension == ".json" || fileExtension == ".xml")
                         {
                             response.SetBody(File.ReadAllText(findPath));
                         }
@@ -428,7 +434,7 @@ public class HTTPServer
                         response.SetHeader("Content-Language", "en-US, es-ES");
                         response.SetHeader("Content-Type", HTTPHeader._mimeTable[".plain"]);
                         response.SetCacheControl(0);
-                        string json = JsonUtility.ToJson(session.Token); 
+                        string json = JsonConvert.SerializeObject(session.Token); 
                         //response.SetBody(JsonSerializer.Serialize(new { token = session.Token }));
                     }
                     else
@@ -443,10 +449,10 @@ public class HTTPServer
                     
                 }
                 //Handle User Creation 
-                else if (uri.StartsWith("/users") || uri.StartsWith("users"))
+                else if (uri.StartsWith("/users") || uri.Contains("/users/"))
                 {
                     //User user = JsonSerializer.Deserialize<User>(body);
-                    User user = JsonUtility.FromJson<User>(body); 
+                    User user = JsonConvert.DeserializeObject<User>(body); 
                     
                     if (_userManager.CreateUser(user.Username, user.Password))
                     {
@@ -458,8 +464,10 @@ public class HTTPServer
                         response.SetStatusLine(httpVersion, 409);
                         response.SetBody("{\"error\":\"User already exists\"}");
                     }
+
+                    int x = 0; 
                 } //------------------------------------------^
-                else if (uri.Contains("/cats") || uri.Contains("cats"))
+                else if (uri.Contains("/cats/"))
                 {
                     // Read the body of the request
                     //string jsonTestPost = "{\"name\": \"Mittens\",\"breed\": \"Siamese\",\"age\": 3, \"color\": \"black\", \"owner\": \"ALFREDO PEREZ FANTOVA\"}";
@@ -469,7 +477,7 @@ public class HTTPServer
                     try
                     {
                         //catPost = JsonSerializer.Deserialize<Cat>(body, _jsonOptions);
-                        catPost = JsonUtility.FromJson<Cat>(body);
+                        catPost = JsonConvert.DeserializeObject<Cat>(body);
                     }
                     catch (Exception e)
                     {
@@ -527,7 +535,7 @@ public class HTTPServer
                 {
                     string username = uri.Substring("/user/".Length);
                     //User user = JsonSerializer.Deserialize<User>(body);
-                    User user = JsonUtility.FromJson<User>(body); 
+                    User user = JsonConvert.DeserializeObject<User>(body); 
                     
                     if (_userManager.UpdateUser(username, user.Password))
                     {
@@ -549,23 +557,12 @@ public class HTTPServer
                     try
                     {
                         //catPut = JsonSerializer.Deserialize<Cat>(body, _jsonOptions);c
-                        catPut = JsonUtility.FromJson<Cat>(body);
+                        catPut = JsonConvert.DeserializeObject<Cat>(body);
                     }
                     catch (Exception e)
                     {
                         ErrorAssert("Unable to parse in json: " + e.Message + " stack trace: " + e.StackTrace);
                     }
-                    // catch (JsonException jsonException)
-                    // {
-                    //     ErrorAssert("Json error, body don't contain json: body=" + body + " Exception: " + jsonException.Message);
-                    //     response = HTTPResponse.Get400DefaultBadRequestHeader();
-                    // }
-                    // catch (NotSupportedException notSupportedException)
-                    // {
-                    //     ErrorAssert("Json parsing error: " + notSupportedException.Message);
-                    //     response = HTTPResponse.Get500InternalServerErrorHeader();
-                    //     break; 
-                    // }
 
                     response.SetBody("{\"error\":\"Unable to find resource\"}");
                     
@@ -665,7 +662,8 @@ public class HTTPServer
                             response.SetBody("Deleted: ");
                             //response.AppendBody("\n" + JsonSerializer.Serialize(c));
 
-                            string json = JsonUtility.ToJson(c, true); 
+                            string json = JsonConvert.SerializeObject(c); 
+                            response.AppendBody(json);
                             response.SetContentLength();
                             return response.ToString();
                         }
@@ -700,8 +698,7 @@ public class HTTPServer
     {
         // Console.ForegroundColor = ConsoleColor.Magenta; 
         // Console.WriteLine("Server> " + msg);
-        
-        Debug.Log("Server> " + msg);
+        ServerSend.instance.messagePool += "\n" + msg; 
     }
 
     public static void TestAssert(string msg)

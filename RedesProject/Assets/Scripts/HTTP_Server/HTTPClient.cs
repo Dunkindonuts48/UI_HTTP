@@ -61,7 +61,7 @@ public class HTTPClient
         //auxSocket.Connect(host: _serverUri.Host, port: _serverPort);  
         IPAddress serverIPAddress = IPAddress.Parse(_serverIP);
         auxSocket.Blocking = true; 
-        Debug.Log("Client connecting");
+        ClientAssert("Client connecting");
         auxSocket.Connect(serverIPAddress, _serverPort);
         ClientAssert("Connecting to: " + serverIPAddress + ":" + _serverPort);
 
@@ -110,7 +110,7 @@ public class HTTPClient
         // --------------- RECEIVE SERVER RESPONSE ---------------
         byte[] responseBytes = new byte[256];
         string responseString = ""; 
-        ClientAssert("Waiting response");
+        Debug.Log("Waiting response");
         while (true)
         {
             int bytesReceived = _socket.Receive(responseBytes);
@@ -122,7 +122,9 @@ public class HTTPClient
 
         // Trim from end of string received the <eof>
         responseString = mUtils.GetUntilOrEmpty(responseString, "<eof>"); 
-        ClientAssert("Response received: \n" + responseString);
+        ClientAssert("Response received> : \n" + responseString);
+        
+        HTTPServer.ServerAssert(responseString);
         
         HTTPResponse response = new HTTPResponse();
         response.ParseHeader(responseString);
