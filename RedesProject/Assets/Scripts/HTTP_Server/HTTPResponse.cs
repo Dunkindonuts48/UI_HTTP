@@ -238,26 +238,34 @@ public class HTTPResponse : HTTPHeader
 
     public bool ParseHeader(string request)
     {
-        this.Clear();
-
-        request = request.Trim(); 
-        string[] lines = request.Split(new[] { "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-        string[] header = lines[0].Split("\n", StringSplitOptions.RemoveEmptyEntries);
-        
-        // Error check
-        if (lines.Length <= 1 || header.Length <= 1)
+        try
         {
-            _statusLine = "";
-            _headerLines.Clear();
-            _body = "";
+            this.Clear();
+
+            request = request.Trim();
+            string[] lines = request.Split(new[] { "\r\n\r\n" }, StringSplitOptions.None);
+            string[] header = lines[0].Split("\n", StringSplitOptions.RemoveEmptyEntries);
+
+            // Error check
+            if (lines.Length <= 1 || header.Length <= 1)
+            {
+                _statusLine = "";
+                _headerLines.Clear();
+                _body = "";
+                return false;
+            }
+
+            _statusLine = header[0];
+            _headerLines = mUtils.ParseHeaders(String.Join("\n", header));
+            _body = lines[1];
+
+            return true;
+        }
+        catch (Exception e)
+        {
+            HTTPServer.ServerAssert("Exception> Excaption not handled while parsing header: " + e.Message);
             return false; 
         }
-        
-        _statusLine = header[0];
-        _headerLines = mUtils.ParseHeaders(String.Join("\n",header));
-        _body = lines[1];
-
-        return true; 
     }
     
     public override string ToString()

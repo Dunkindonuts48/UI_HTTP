@@ -449,10 +449,31 @@ public class HTTPServer
                     
                 }
                 //Handle User Creation 
-                else if (uri.StartsWith("/users") || uri.Contains("/users/"))
+                else if (uri.Contains("/users/"))
                 {
-                    //User user = JsonSerializer.Deserialize<User>(body);
-                    User user = JsonConvert.DeserializeObject<User>(body); 
+                    User? user = null; 
+                    try
+                    {
+                        user = JsonConvert.DeserializeObject<User>(body); 
+                        // user = new User("Dani", "Danipass", "asd");
+                        // Debug.Log(JsonConvert.SerializeObject(user));
+
+                        //User user = JsonConvert.DeserializeObject<User>(body); 
+                        ServerAssert("User created > " + user);
+                    }
+                    catch (JsonException jsonException)
+                    {
+                        ServerAssert("Exception handled> " + jsonException.Message);
+                        response = HTTPResponse.Get400DefaultBadRequestHeader();
+                        break; 
+                    }
+                    catch (Exception exception)
+                    {
+                        ServerAssert("Exception handled> " + exception.Message);
+                        response = HTTPResponse.Get400DefaultBadRequestHeader();
+                        break; 
+                    }
+                    
                     
                     if (_userManager.CreateUser(user.Username, user.Password))
                     {
@@ -524,6 +545,10 @@ public class HTTPServer
                     response.SetCacheControl(0);
                     response.SetBody("{\"success\":\"Image uploaded successfully\"}");
                     return response.ToString();
+                }
+                else
+                {
+                    response = HTTPResponse.Get404DefaultNotFoundHeader(); 
                 }
                 
                 break;

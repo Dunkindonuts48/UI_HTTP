@@ -58,17 +58,21 @@ public class ClientSend : MonoBehaviour
         Debug.Log("HEADER: " + inputData2);
         Debug.Log("BODY: " + inputData3);
 
-
-        string[] uri = inputData1.Split("/", StringSplitOptions.RemoveEmptyEntries);
-        uri[0] = uri[0].Trim();
-        if (uri[0] == "localhost")
-        {
-            uri[0] = "127.0.0.1"; 
-        }
+        
+        // string[] uri = inputData1.Split("/", StringSplitOptions.RemoveEmptyEntries);
+        // uri[0] = uri[0].Trim();
+        // if (uri[0] == "localhost")
+        // {
+        //     uri[0] = "127.0.0.1"; 
+        // }
 
         HTTPRequest request = new HTTPRequest();
-        request.ParseHeader(inputData1 + "\n" + inputData2 + "\r\n\r\n" + inputData3); 
-
+        if(!request.ParseHeader(dropdown.options[dropdown.value].text.ToUpper() +  inputData1 + "HTTP/1.1" + "\n" + inputData2 + "\r\n\r\n" + inputData3))
+        {
+            Debug.Log("__________ERRRORRRR--_____________");
+            return; 
+        } 
+        
         // Create call depends of the type
         switch (dropdown.options[dropdown.value].text)
         {
@@ -129,6 +133,8 @@ public class ClientSend : MonoBehaviour
         //{
         //    inputField3.text = "";
         //}
+        
+        Program.SendHTTPRequest(request);
     }
 
     public class DummyClass

@@ -4,11 +4,14 @@ using UnityEngine;
 
 class Program : MonoBehaviour
 {
+    private static HTTPServer server = null;
+
+    private static HTTPClient client = null; 
     //static void Main(string[] args)
     private void Awake()
     {
-        HTTPServer server = new HTTPServer();
-        HTTPClient client = new HTTPClient(); 
+        server = new HTTPServer();
+        client = new HTTPClient(); 
         
         // var test = mUtils.ParsePostAttributes("username=admin&password=admin_pass");
         // string pasword = test["password"]; 
@@ -46,21 +49,27 @@ class Program : MonoBehaviour
         // client.SendHttpRequest(catPost);
 
 
-        HTTPRequest getIndex = new HTTPRequest(); 
-        getIndex.SetRequestLine("GET", "/index.html", 1.1f);
-        getIndex.SetHeader("Accept", "text/html, application/json, text/xml, image/jpeg");
-        getIndex.SetHeader("Accept-Language", "en-US, es-ES"); 
-        getIndex.SetDateHeader();
-        getIndex.SetConnectionHeader("keep-alive");
-        getIndex.SetHeader("Authorization", "Bearer admin_token");
-        //getIndex.SetBody("username=admin&password=admin");
-        //getIndex.SetBody("{\"Name\":\"Admin2\", \"Password\":\"hola\", \"Salt\":\"akjshdm\"}");
-        getIndex.SetBody("");
-        getIndex.SetContentLength();
-        
-        client.SendHttpRequest(getIndex);
+        // HTTPRequest getIndex = new HTTPRequest(); 
+        // getIndex.SetRequestLine("DELETE", "/users/admin", 1.1f);
+        // getIndex.SetHeader("Accept", "text/html, application/json, text/xml, image/jpeg");
+        // getIndex.SetHeader("Accept-Language", "en-US, es-ES"); 
+        // getIndex.SetDateHeader();
+        // getIndex.SetConnectionHeader("keep-alive");
+        // getIndex.SetHeader("Authorization", "Bearer admin_token");
+        // //getIndex.SetBody("username=admin&password=admin");
+        // //getIndex.SetBody("{\"Urname\":\"Admin2\", \"Password\":\"hola\", \"Salt\":\"akjshdm\"}");
+        // getIndex.SetBody("{\"Username\":\"Dani\",\"Password\":\"Danipass\",\"Salt\":\"asd\"}");
+        // getIndex.SetBody("this is a test");
+        // getIndex.SetContentLength();
+        //
+        // client.SendHttpRequest(getIndex);
         //client.Disconnect();
         
         //Console.ReadKey(); 
+    }
+
+    public static void SendHTTPRequest(HTTPRequest request)
+    {
+        client.SendHttpRequest(request); 
     }
 }

@@ -14,5 +14,12 @@ namespace HTTP_NET_Project
             Password = password;
             Salt = salt;
         }
+
+        public override string ToString()
+        {
+            return $"Username: {Username}\n" +
+                   $"Password: {Password}\n" +
+                   $"Salt: {Salt}\n"; 
+        }
     }
 }

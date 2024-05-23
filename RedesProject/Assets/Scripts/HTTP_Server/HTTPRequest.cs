@@ -45,26 +45,38 @@ public class HTTPRequest : HTTPHeader
     /// <returns>bool success, true if succesfully has parsed the header or false if is incorrectly formated</returns>
     public bool ParseHeader(string request)
     {
-        this.Clear();
-
-        request = request.Trim(); 
-        string[] lines = request.Split(new[] { "\r\n\r\n" }, StringSplitOptions.RemoveEmptyEntries);
-        string[] header = lines[0].Split("\n", StringSplitOptions.RemoveEmptyEntries);
-        
-        // Error check
-        if (lines.Length <= 1 || header.Length <= 1)
+        try
         {
-            _requestLine = "";
-            _headerLines.Clear();
-            _body = "";
+            this.Clear();
+
+            request = request.Trim(); 
+            string[] lines = request.Split(new[] { "\r\n\r\n" }, StringSplitOptions.None);
+        
+            if (lines.Length != 2) return false; 
+        
+            string[] header = lines[0].Split("\n", StringSplitOptions.RemoveEmptyEntries);
+        
+            // Error check
+            if (lines.Length <= 1 || header.Length <= 1)
+            {
+                _requestLine = "";
+                _headerLines.Clear();
+                _body = "";
+                return false; 
+            }
+        
+            _requestLine = header[0];
+            _headerLines = mUtils.ParseHeaders(String.Join("\n",header));
+            _body = lines[1];
+
+            return (_requestLine.Length > 1 && _headerLines.Count >= 1); 
+
+        }
+        catch (Exception e)
+        {
+            HTTPServer.ServerAssert("Exception> Excaption not handled while parsing header: " + e.Message);
             return false; 
         }
-        
-        _requestLine = header[0];
-        _headerLines = mUtils.ParseHeaders(String.Join("\n",header));
-        _body = lines[1];
-
-        return (_requestLine.Length > 1 && _headerLines.Count >= 1); 
     }
     
     public static string GetBodyFromRequest(string request)
