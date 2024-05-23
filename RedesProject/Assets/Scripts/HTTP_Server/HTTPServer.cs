@@ -43,7 +43,7 @@ public class HTTPServer
     // --------- RESOURCES AND FILES LISTING VARIABLES ---------
     private readonly string _publicFolderRelativePath = "/public"; 
     
-    private readonly string[] _avaliableFiles = { "/index.html", "/example.json", "/fol/example.xml", "gustavo.jpg" };
+    private readonly string[] _avaliableFiles = { "/index.html", "/example.json", "/fol/example.xml", "gustavo.jpg", "uploaded_image.png" };
     private readonly string[] _avaliableResources = { "/cats", "/users" , "/png", "/login"};
     
     // JsonSerializerOptions _jsonOptions = new JsonSerializerOptions
@@ -72,51 +72,47 @@ public class HTTPServer
         
         try
         {
-            // Not problem because is working on Multithreading
-            while (true)
-            {
-                _socketListener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp); 
-                _socketListener.Bind(new IPEndPoint(ipAddress, _serverPort));
-                Debug.Log("Server listenign");
-                _socketListener.Listen(1); 
+            _socketListener = new Socket(ipAddress.AddressFamily, SocketType.Stream, ProtocolType.Tcp); 
+            _socketListener.Bind(new IPEndPoint(ipAddress, _serverPort));
+            Debug.Log("Server listenign");
+            _socketListener.Listen(1); 
         
-                ServerAssert("Waiting for a connection at " + ipAddress.ToString() + ":" + _serverPort);
+            ServerAssert("Waiting for a connection at " + ipAddress.ToString() + ":" + _serverPort);
 
-                Socket connectionSocket = _socketListener.Accept();
-                connectionSocket.Blocking = true; 
-
-                while (!_closeConnection)
+            Socket connectionSocket = _socketListener.Accept();
+            connectionSocket.Blocking = true; 
+            
+            while (!_closeConnection)
+            {
+                // --------- Receive the request ---------
+                string data = ""; 
+                byte[] bytes = null;
+                string response = ""; 
+        
+                ServerAssert("Waiting for communication...");
+                while (true)
                 {
-                    // --------- Receive the request ---------
-                    string data = ""; 
-                    byte[] bytes = null;
-                    string response = ""; 
+                    bytes = new byte[1024];
+                    int numBytesReceived = connectionSocket.Receive(bytes);
+                    data += Encoding.ASCII.GetString(bytes, 0, numBytesReceived);
             
-                    ServerAssert("Waiting for communication...");
-                    while (true)
-                    {
-                        bytes = new byte[1024];
-                        int numBytesReceived = connectionSocket.Receive(bytes);
-                        data += Encoding.ASCII.GetString(bytes, 0, numBytesReceived);
-                
-                        // if (numBytesReceived == 0) break;
-                        if (data.IndexOf("<eof>") > -1) { break; }
-                    }
-                    // Create a response to the current request, handling errors and other situations
-                    response = HandleResponse(data);
-                    
-                    //ServerAssert("Message received: \n" + data);
-            
-                    // --------- Send the response ---------
-                    byte[] responseBytes = Encoding.ASCII.GetBytes(response); 
-                    int responseBytesSend = 0;
-                    while (responseBytesSend < responseBytes.Length)
-                    {
-                        responseBytesSend += connectionSocket.Send(responseBytes, responseBytesSend, responseBytes.Length - responseBytesSend, SocketFlags.None);
-                    }
-            
-                    ServerAssert("Response sended");
+                    // if (numBytesReceived == 0) break;
+                    if (data.IndexOf("<eof>") > -1) { break; }
                 }
+                // Create a response to the current request, handling errors and other situations
+                response = HandleResponse(data);
+                
+                //ServerAssert("Message received: \n" + data);
+        
+                // --------- Send the response ---------
+                byte[] responseBytes = Encoding.ASCII.GetBytes(response); 
+                int responseBytesSend = 0;
+                while (responseBytesSend < responseBytes.Length)
+                {
+                    responseBytesSend += connectionSocket.Send(responseBytes, responseBytesSend, responseBytes.Length - responseBytesSend, SocketFlags.None);
+                }
+        
+                ServerAssert("Response sended");
             }
         }
         catch (Exception excep)
@@ -125,6 +121,12 @@ public class HTTPServer
         }
     }
 
+    /// <summary>
+    /// Its the main behaviour of the server defined .
+    /// Receive the HTTP Request, handle the method, resource / file requested and endpoinst and return the correct response
+    /// </summary>
+    /// <param name="request"> Client request</param>
+    /// <returns>The server response to the server request</returns>
     private string HandleResponse(string request)
     {
         // Clean <eof>
@@ -184,7 +186,7 @@ public class HTTPServer
         #region VALIDATION OF REQUEST
         // Wrong connection header  ----> 404 BAD REQUEST
         if (!headers.ContainsKey("Connection") ||
-            (headers["Connection"] != "close" && headers["Connection"] != "keep-alive"))
+            (headers["Connection"] != "close" && headers["Connection"] != "keep-alive") && headers["Connection"] != "Upgrade")
         {
             return HTTPResponse.Get400DefaultBadRequestHeader("{\"error\":\"No connection header specified\"}").ToString(); 
         }
@@ -269,8 +271,10 @@ public class HTTPServer
                     if (user != null)
                     {
                         response.SetStatusLine(httpVersion, 200);
-                        string bodyJson = JsonConvert.SerializeObject(user); 
+                        string bodyJson = ""; 
+                        try{ bodyJson = JsonConvert.SerializeObject(user);} catch (Exception e) { ErrorAssert("Unable to serialize user as json: " + e.Message);} 
                         //response.SetBody(JsonSerializer.Serialize(new { user = user}));
+                        response.SetBody(bodyJson);
                     }
                     else
                     {
@@ -301,19 +305,21 @@ public class HTTPServer
                         if (catName.Length <= 0) // Uri = /cats/ so get all cats
                         {
                             // Return JSON with all cats
-                            string json = ""; 
+                            string json = "";
+
                             try
                             {
-                                //json = JsonSerializer.Serialize(listCats, new JsonSerializerOptions { WriteIndented = true });
                                 json = JsonConvert.SerializeObject(listCats);
-                                // foreach (Cat c in listCats)
-                                // {
-                                //     json += c.ToJson(); 
-                                // }
                             }
-                            catch (NotSupportedException e)
+                            catch (NotSupportedException jsonException)
                             {
-                                ErrorAssert("Unable to transform cats list into json: " + e.Message);
+                                ErrorAssert("Unable to transform cats list into json: " + jsonException.Message);
+                                response = HTTPResponse.Get500InternalServerErrorHeader();
+                                break;
+                            }
+                            catch (Exception exception)
+                            {
+                                ErrorAssert("Unable to transform cats list into json: " + exception.Message);
                                 response = HTTPResponse.Get500InternalServerErrorHeader();
                                 break;
                             }
@@ -366,7 +372,7 @@ public class HTTPServer
                 if (File.Exists(findPath))
                 {
                     string fileExtension = Path.GetExtension(uri); 
-                    ServerAssert("File exists and have extension: " + Path.GetExtension(uri));
+                    TestAssert("File exists and have extension: " + Path.GetExtension(uri));
 
                     // If accept same mime as asked in the uri (If ask for index.html, Accept: must contain text/html or all data types "Accept:*/*"
                     if (headers["Accept"].IndexOf(HTTPHeader._mimeTable[Path.GetExtension(uri).Trim()]) > -1 || headers["Accept"] == "*/*")
@@ -376,17 +382,21 @@ public class HTTPServer
                         response.SetHeader("Content-Language", "en-US, es-ES");
                         response.SetHeader("Content-Type", HTTPHeader._mimeTable[Path.GetExtension(uri).Trim()]);
                         response.SetCacheControl(60);
-                        //if(method == "GET") response.SetBody(File.ReadAllText(findPath));     // Attach response content
-                        if (fileExtension == ".html" || fileExtension == ".txt" || fileExtension == ".json" || fileExtension == ".xml")
+
+
+                        // Only insert method in GET, not in HEAD
+                        if (method == "GET")
                         {
-                            response.SetBody(File.ReadAllText(findPath));
-                        }
-                        else
-                        {
-                            byte[] file = File.ReadAllBytes(findPath);
-                            string fileToString = Convert.ToBase64String(file);
-                            response.SetBody(fileToString);
-                            //response.SetBody(file.ToString());
+                            if (fileExtension == ".html" || fileExtension == ".txt" || fileExtension == ".json" || fileExtension == ".xml")
+                            {
+                                response.SetBody(File.ReadAllText(findPath));
+                            }
+                            else
+                            {
+                                byte[] file = File.ReadAllBytes(findPath);
+                                string fileToString = Convert.ToBase64String(file);
+                                response.SetBody(fileToString);
+                            }
                         }
                     }
                     else
@@ -408,14 +418,20 @@ public class HTTPServer
                 break; 
             
             case "POST":
-                // TODO Handle post header
-                //Handle User Login ------------------------------------------_
+                //Handle User Login 
                 if (uri.StartsWith("/login") || uri.StartsWith("login"))
                 {
                     //var loginRequest = JsonSerializer.Deserialize<Dictionary<string, string>>(body);
                     
-                    Dictionary<string, string> loginParams = mUtils.ParsePostAttributes(body);
+                    Dictionary<string, string>? loginParams = mUtils.ParsePostAttributes(body);
 
+                    if (loginParams == null)
+                    {
+                        response = HTTPResponse.Get500InternalServerErrorHeader();
+                        ErrorAssert("body is empty or not formatted as <param1>=<value1>&<param2>=<value2>");
+                        break; 
+                    }
+                    
                     if (loginParams == null || !(loginParams.ContainsKey("username") && loginParams.ContainsKey("password")))
                     {
                         // Incorrect login parameters format
@@ -434,7 +450,9 @@ public class HTTPServer
                         response.SetHeader("Content-Language", "en-US, es-ES");
                         response.SetHeader("Content-Type", HTTPHeader._mimeTable[".plain"]);
                         response.SetCacheControl(0);
-                        string json = JsonConvert.SerializeObject(session.Token); 
+                        string json = "{\"token\":\""+session.Token+"\"}";   
+                        response.SetBody(json);
+                        response.SetContentLength();
                     }
                     else
                     {
@@ -446,6 +464,7 @@ public class HTTPServer
                         response.SetBody("Invalid username or password");
                     }
                     
+                    break; 
                 }
                 //Handle User Creation 
                 else if (uri.Contains("/users/"))
@@ -480,38 +499,22 @@ public class HTTPServer
                         response.SetBody("{\"error\":\"User already exists\"}");
                     }
 
-                    int x = 0; 
+                    break; 
                 } //------------------------------------------^
                 else if (uri.Contains("/cats/"))
                 {
-                    // Read the body of the request
-                    //string jsonTestPost = "{\"name\": \"Mittens\",\"breed\": \"Siamese\",\"age\": 3, \"color\": \"black\", \"owner\": \"ALFREDO PEREZ FANTOVA\"}";
-
                     // Reads JSON from the body to add a cat
                     Cat? catPost = null;
                     try
                     {
-                        //catPost = JsonSerializer.Deserialize<Cat>(body, _jsonOptions);
                         catPost = JsonConvert.DeserializeObject<Cat>(body);
                     }
                     catch (Exception e)
                     {
                         ErrorAssert(" Unable to parse JSON: " + e.Message + " stack trace: " + e.StackTrace);
-                        response = HTTPResponse.Get400DefaultBadRequestHeader("Unable to parse json in body");
+                        response = HTTPResponse.Get400DefaultBadRequestHeader("Unable to parse json in body, cat must contain: name, breed, gender, age, owner");
                         break; 
                     }
-                    // catch (JsonException excep)
-                    // {
-                    //     ErrorAssert("Unable to parse JSON, body was: " + body);
-                    //     response = HTTPResponse.Get400DefaultBadRequestHeader();
-                    //     break; 
-                    // }
-                    // catch (NotSupportedException excep)
-                    // {
-                    //     ErrorAssert("JSON parsing not supported");
-                    //     response = HTTPResponse.Get500InternalServerErrorHeader();
-                    //     break; 
-                    // }
                     
                     listCats.Add(catPost);
 
@@ -526,7 +529,8 @@ public class HTTPServer
                 else if (uri.Contains("/png") || uri.Contains("png"))
                 {
                     byte[] imageData = Convert.FromBase64String(body);
-                    PNG pngImage = new PNG("uploaded_image.png", imageData);
+                    
+                    PNG pngImage = new PNG("another_upload.png", imageData);
 
                     // Save the image or process it
                     string imagePath = Path.Combine(_rootPath + _publicFolderRelativePath, pngImage.FileName);
@@ -550,7 +554,6 @@ public class HTTPServer
                 break;
             
             case "PUT": // UPDATE IN DB
-                
                 //Handle User Update ------------------------------------------_
                 if (uri.StartsWith("/users")) // uri.StartsWith == "/user/"
                 {
@@ -713,23 +716,25 @@ public class HTTPServer
     /// <param name="msg">Message string to assert</param>
     public static void ServerAssert(string msg)
     {
-        // Console.ForegroundColor = ConsoleColor.Magenta; 
-        // Console.WriteLine("Server> " + msg);
+        // Store in server UI pool that will be processed in next frame
         ServerSend.instance.messagePool += "\n" + msg; 
     }
 
+    /// <summary>
+    /// Testing assertions for debugging and normal behaviour check
+    /// </summary>
+    /// <param name="msg">Message to assert</param>
     public static void TestAssert(string msg)
     {
-        // Console.ForegroundColor = ConsoleColor.Yellow;
-        // Console.WriteLine(msg); 
         Debug.Log("Test> " + msg);
     }
 
+    /// <summary>
+    /// Error assertion while the execition of the program
+    /// </summary>
+    /// <param name="msg">Message to assert</param>
     public static void ErrorAssert(string msg)
     {
-        // Console.ForegroundColor = ConsoleColor.Red; 
-        // Console.WriteLine("Error> " + msg);
-        
         Debug.Log("Error> " + msg);
     }
     

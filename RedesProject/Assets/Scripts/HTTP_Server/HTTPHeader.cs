@@ -292,7 +292,6 @@ public abstract class HTTPHeader
         if (!_headerLines.ContainsKey("Cache-Control")){
             return CacheDirective.NON_VALID; 
         }
-        
         // max-age=1000,must-revalidate
         string cacheControl = _headerLines["Cache-Control"];
 

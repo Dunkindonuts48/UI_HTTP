@@ -240,7 +240,7 @@ public class HTTPResponse : HTTPHeader
         {
             this.Clear();
 
-            request = request.Trim();
+            //request = request.Trim();
             string[] lines = request.Split(new[] { "\r\n\r\n" }, StringSplitOptions.None);
             string[] header = lines[0].Split("\n", StringSplitOptions.RemoveEmptyEntries);
 

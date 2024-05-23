@@ -23,14 +23,6 @@ public class HTTPRequest : HTTPHeader
     /// <param name="httpVersion">http version to use in the tranfer</param>
     public void SetRequestLine(string method, string uri, float httpVersion)
     {
-//         if (!_avaliableHttpVersions.Contains(httpVersion))
-//         {
-//             _requestLine = "";
-// #if DEBUG_MODE
-//             Console.WriteLine("Not avaliable http version: " + httpVersion); 
-// #endif
-//             return; 
-//         }
         _requestLine = method + " " + uri + " HTTP/" + httpVersion.ToString(); 
     }
 
@@ -124,7 +116,7 @@ public class HTTPRequest : HTTPHeader
         
         // If no connection header, set Connection:close as default 
         if (!_headerLines.ContainsKey("Connection")) {
-            SetConnectionHeader("close");
+            SetConnectionHeader("keep-alive");
         }
         
         SetDateHeader();

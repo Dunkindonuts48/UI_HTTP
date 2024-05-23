@@ -88,16 +88,17 @@ public class HTTPClient
     /// <returns>Response in string that is sended back by the server</returns>
     public string SendHttpRequest(HTTPRequest request)
     {
-        //add session token to header //------------------------------------_
+        //add session token to header
         if (!string.IsNullOrEmpty(_sessionToken))
         {
             request.SetHeader("Authorization", "Bearer " + _sessionToken);
         } //-------------------------------------------------------------^
 
         // --------------- CHECK IF SAVED IN CACHE ---------------
-        string inCache = CheckAndRetreiveFromCache(request.GetUri());
+        string inCache = CheckAndRetreiveFromCache(request.GetMethod()+request.GetUri());
         if (inCache != "")
         {
+            HTTPServer.ServerAssert("---STORED IN CACHE---\n" + inCache );
             return inCache; 
         }
         
@@ -124,6 +125,7 @@ public class HTTPClient
 
         // Trim from end of string received the <eof>
         responseString = mUtils.GetUntilOrEmpty(responseString, "<eof>"); 
+        
         ClientAssert("Response received> : \n" + responseString);
         
         HTTPServer.ServerAssert(responseString);
@@ -136,13 +138,20 @@ public class HTTPClient
         {
             //Dictionary<string,string> jsonResponse = JsonSerializer.Deserialize<Dictionary<string, string>>(response.GetBody());
 
-            Dictionary<string, string> jsonResponse =
-                JsonUtility.FromJson<Dictionary<string, string>>(response.GetBody()); 
-            if (jsonResponse.ContainsKey("token"))
+            try
             {
-                _sessionToken = jsonResponse["token"];
+                Dictionary<string, string> jsonResponse =
+                    JsonUtility.FromJson<Dictionary<string, string>>(response.GetBody());
+                if (jsonResponse.ContainsKey("token"))
+                {
+                    _sessionToken = jsonResponse["token"];
+                }
             }
-        } //------------------------------------^
+            catch (Exception exception)
+            {
+                Debug.Log("Error> exception handled, unable to parse token : " + exception.Message);
+            }
+        } 
         
         
         // --------------- CACHE ELEMENTS ---------------
@@ -150,7 +159,8 @@ public class HTTPClient
         if (response.GetCacheDirective() == HTTPHeader.CacheDirective.MAX_AGE)
         {
             int cacheTime = response.GetCacheMaxAge();   
-            _cache.Add(request.GetUri(), CacheItem<String>.ExpirableCacheItem(response.ToString(), cacheTime));
+            // Store method-uri as cache key and the request data in cache associated with the key
+            _cache.Add(request.GetMethod()+request.GetUri(), CacheItem<String>.ExpirableCacheItem(response.ToString(), cacheTime));
         }
         
         return responseString; 

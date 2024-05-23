@@ -70,62 +70,66 @@ public class ClientSend : MonoBehaviour
         
         if(!request.ParseHeader(dropdown.options[dropdown.value].text.ToUpper() + " " +  inputData1.Trim() + " HTTP/1.1" + "\n" + inputData2 + "\r\n\r\n" + inputData3 ))
         {
-            Debug.Log("__________ERRRORRRR--_____________");
+            inputField3.text += "\n Incorrect Headers"; 
             return; 
         } 
         
         // Create call depends of the type
-        switch (dropdown.options[dropdown.value].text)
-        {
-            case "Post":
-                // Check if its JSON
-                if (!IsValidJson(inputData3))
-                {
-                    serverSend.UpdateText("The body is not a JSON, please check it.");
-                    return;
-                }
-                else
-                {
-
-                }
-                break;
-            case "Get":
-                // Advice the user that the Get method does not require a body and stop the process
-                if (inputData3.Length != 0)
-                {
-                    serverSend.UpdateText("ERROR: Get no requires a body.");
-                    return;
-                }
-                else
-                {
-
-                }
-                break;
-            case "Put":
-                // Check if its JSON
-                if (!IsValidJson(inputData3))
-                {
-                    serverSend.UpdateText("The body is not a JSON, please check it.");
-                    return;
-                }
-                else
-                {
-
-                }
-                break;
-            case "Delete":
-                // Advice the user that the Delete method does not require a body and stop the process
-                if (inputData3.Length != 0)
-                {
-                    serverSend.UpdateText("ERROR: Get no requires a body.");
-                    return;
-                }
-                else
-                {
-
-                }
-                break;
-        }
+        // switch (dropdown.options[dropdown.value].text)
+        // {
+        //     case "POST":
+        //         // // Check if its JSON
+        //         // if (!IsValidJson(inputData3))
+        //         // {
+        //         //     serverSend.UpdateText("The body is not a JSON, please check it.");
+        //         //     return;
+        //         // }
+        //         // else
+        //         // {
+        //         //
+        //         // }
+        //         // break;
+        //     case "GET":
+        //         // // Advice the user that the Get method does not require a body and stop the process
+        //         // if (inputData3.Length != 0)
+        //         // {
+        //         //     serverSend.UpdateText("ERROR: Get no requires a body.");
+        //         //     return;
+        //         // }
+        //         // else
+        //         // {
+        //         //
+        //         // }
+        //         // break;
+        //     case "PUT":
+        //         // // Check if its JSON
+        //         // if (!IsValidJson(inputData3))
+        //         // {
+        //         //     serverSend.UpdateText("The body is not a JSON, please check it.");
+        //         //     return;
+        //         // }
+        //         // else
+        //         // {
+        //         //
+        //         // }
+        //         // break;
+        //     case "DELETE":
+        //         // Advice the user that the Delete method does not require a body and stop the process
+        //         if (inputData3.Length != 0)
+        //         {
+        //             serverSend.UpdateText("ERROR: Get no requires a body.");
+        //             return;
+        //         }
+        //         else
+        //         {
+        //
+        //         }
+        //         break;
+        //     case "HEAD":
+        //         break; 
+        //     default:
+        //         break; 
+        // }
 
         //// Optionally, clear the input fields after submission
         //inputField1.text = "";
