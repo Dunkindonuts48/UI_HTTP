@@ -49,7 +49,7 @@ public class HTTPRequest : HTTPHeader
         {
             this.Clear();
 
-            request = request.Trim(); 
+            //request = request.Trim(); 
             string[] lines = request.Split(new[] { "\r\n\r\n" }, StringSplitOptions.None);
         
             if (lines.Length != 2) return false; 
@@ -57,7 +57,7 @@ public class HTTPRequest : HTTPHeader
             string[] header = lines[0].Split("\n", StringSplitOptions.RemoveEmptyEntries);
         
             // Error check
-            if (lines.Length <= 1 || header.Length <= 1)
+            if (lines.Length < 1 || lines.Length > 2 || header.Length < 1)
             {
                 _requestLine = "";
                 _headerLines.Clear();

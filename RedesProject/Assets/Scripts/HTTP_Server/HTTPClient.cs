@@ -61,7 +61,9 @@ public class HTTPClient
         //auxSocket.Connect(host: _serverUri.Host, port: _serverPort);  
         IPAddress serverIPAddress = IPAddress.Parse(_serverIP);
         auxSocket.Blocking = true; 
+        
         ClientAssert("Client connecting");
+        
         auxSocket.Connect(serverIPAddress, _serverPort);
         ClientAssert("Connecting to: " + serverIPAddress + ":" + _serverPort);
 

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using HTTP_NET_Project;
+using UnityEngine;
 
 public class HTTPResponse : HTTPHeader
 {
@@ -139,7 +140,7 @@ public class HTTPResponse : HTTPHeader
     {
         HTTPResponse response = new HTTPResponse(); 
         response.SetStatusLine(1.1f, 400);
-        response.SetHeader("Content-Type", "text/html; charset=utf-8");
+        response.SetHeader("Content-Type",  _mimeTable[".plain"]+"; charset=utf-8");
         response.SetConnectionHeader("keep-alive");
         response.SetDateHeader();
         response.SetCacheControl(0);
@@ -152,7 +153,7 @@ public class HTTPResponse : HTTPHeader
     {
         HTTPResponse response = new HTTPResponse(); 
         response.SetStatusLine(1.1f, 401);
-        response.SetHeader("Content-Type", "text/html; charset=utf-8");
+        response.SetHeader("Content-Type", "application/json; charset=utf-8");
         response.SetConnectionHeader("keep-alive");
         response.SetDateHeader();
         response.SetCacheControl(0);
@@ -178,6 +179,7 @@ public class HTTPResponse : HTTPHeader
         HTTPResponse response = new HTTPResponse(); 
         response.SetStatusLine(1.1f, 411);
         response.SetConnectionHeader("close");
+        response.SetHeader("Content-Type",  _mimeTable[".plain"]+"; charset=utf-8");
         response.SetDateHeader();
         response.SetBody("");
         response.SetContentLength();
@@ -190,6 +192,7 @@ public class HTTPResponse : HTTPHeader
         response.SetStatusLine(1.1f, 414);
         response.SetServerHeader();
         response.SetConnectionHeader("keep-alive");
+        response.SetHeader("Content-Type",  _mimeTable[".json"]+"; charset=utf-8");
         response.SetDateHeader();
         response.SetBody("{\"error\":\"Uri is too long, maximum length 50 characters\"}");
         response.SetContentLength();
@@ -203,11 +206,6 @@ public class HTTPResponse : HTTPHeader
     /// <returns>101 Switching Protocols HTTP header or 500 internal server error if triying to upgrade to a non-existing HTTP version</returns>
     public static HTTPResponse Get101DefaultSwitchingHttpVersionHeader(float newHttpVersion = 1.1f)
     {
-        // if (!_avaliableHttpVersions.Contains(newHttpVersion))
-        // {
-        //     return Get500InternalServerErrorHeader(); 
-        // }
-
         HTTPResponse upgradeResponse = new HTTPResponse(); 
         upgradeResponse.SetStatusLine(newHttpVersion,  10);
         upgradeResponse.SetHeader("Server", "MyServer/1.0.0 (Windows)");
@@ -247,7 +245,7 @@ public class HTTPResponse : HTTPHeader
             string[] header = lines[0].Split("\n", StringSplitOptions.RemoveEmptyEntries);
 
             // Error check
-            if (lines.Length <= 1 || header.Length <= 1)
+            if (lines.Length < 1 || lines.Length > 2 || header.Length < 1)
             {
                 _statusLine = "";
                 _headerLines.Clear();

@@ -92,6 +92,7 @@ public class HTTPServer
                     byte[] bytes = null;
                     string response = ""; 
             
+                    ServerAssert("Waiting for communication...");
                     while (true)
                     {
                         bytes = new byte[1024];
@@ -103,9 +104,8 @@ public class HTTPServer
                     }
                     // Create a response to the current request, handling errors and other situations
                     response = HandleResponse(data);
-                
-            
-                    ServerAssert("Message received: " + data);
+                    
+                    //ServerAssert("Message received: \n" + data);
             
                     // --------- Send the response ---------
                     byte[] responseBytes = Encoding.ASCII.GetBytes(response); 
@@ -435,7 +435,6 @@ public class HTTPServer
                         response.SetHeader("Content-Type", HTTPHeader._mimeTable[".plain"]);
                         response.SetCacheControl(0);
                         string json = JsonConvert.SerializeObject(session.Token); 
-                        //response.SetBody(JsonSerializer.Serialize(new { token = session.Token }));
                     }
                     else
                     {
@@ -455,11 +454,6 @@ public class HTTPServer
                     try
                     {
                         user = JsonConvert.DeserializeObject<User>(body); 
-                        // user = new User("Dani", "Danipass", "asd");
-                        // Debug.Log(JsonConvert.SerializeObject(user));
-
-                        //User user = JsonConvert.DeserializeObject<User>(body); 
-                        ServerAssert("User created > " + user);
                     }
                     catch (JsonException jsonException)
                     {
@@ -503,6 +497,8 @@ public class HTTPServer
                     catch (Exception e)
                     {
                         ErrorAssert(" Unable to parse JSON: " + e.Message + " stack trace: " + e.StackTrace);
+                        response = HTTPResponse.Get400DefaultBadRequestHeader("Unable to parse json in body");
+                        break; 
                     }
                     // catch (JsonException excep)
                     // {
@@ -559,9 +555,21 @@ public class HTTPServer
                 if (uri.StartsWith("/users")) // uri.StartsWith == "/user/"
                 {
                     string username = uri.Substring("/user/".Length);
-                    //User user = JsonSerializer.Deserialize<User>(body);
-                    User user = JsonConvert.DeserializeObject<User>(body); 
-                    
+
+                    User user = null;
+
+
+
+                    try
+                    {
+                        user = JsonConvert.DeserializeObject<User>(body);
+                    }
+                    catch (Exception exception)
+                    {
+                        response = HTTPResponse.Get400DefaultBadRequestHeader("Unable to parse json in body");
+                        break; 
+                    }
+
                     if (_userManager.UpdateUser(username, user.Password))
                     {
                         response.SetStatusLine(httpVersion, 200);
@@ -606,43 +614,11 @@ public class HTTPServer
                     response.SetHeader("Content-Type", HTTPHeader._mimeTable[".json"]);
                     response.SetCacheControl(0);
                     response.SetContentLength();
-                     return response.ToString();
+                    return response.ToString();
                 }
                 break; 
             case "DELETE": // DELETE IN DB
-                /*
-                    //Handle User Deletion ------------------------------------------_
-                    if (uri.StartsWith("/user/"))
-                    {
-                        var username = uri.Substring("/user/".Length);
-                        if (_userManager.DeleteUser(username))
-                        {
-                            response.SetStatusLine(httpVersion, 200);
-                            response.SetBody("User deleted successfully");
-                        }
-                        else
-                        {
-                            response.SetStatusLine(httpVersion, 404);
-                            response.SetBody("User not found");
-                        }
-                    }
-                    break; //------------------------------------------^
-
-                string jsonTest = "{\"name\": \"Mittens\"}";
-
-                Cat catDelete = JsonSerializer.Deserialize<Cat>(jsonTest); 
-
-                foreach (Cat c in listCats)
-                {
-                    if (c.Name == catDelete.Name)
-                    {
-                        listCats.Remove(c);
-                    }
-                }
-
-                response.SetStatusLine(httpVersion, 200);
-                break;
-                */
+                
                 if (uri.Contains("/users/")) 
                 {
                     string username = uri.Substring("/users/".Length);
@@ -687,7 +663,17 @@ public class HTTPServer
                             response.SetBody("Deleted: ");
                             //response.AppendBody("\n" + JsonSerializer.Serialize(c));
 
-                            string json = JsonConvert.SerializeObject(c); 
+                            string json = ""; 
+                            try
+                            {
+                                json = JsonConvert.SerializeObject(c);
+                            }
+                            catch(Exception exception)
+                            {
+                                ServerAssert("Error> Unable to serialize json, exception handled: " + exception.Message);
+                                json = ""; 
+                            }
+                            
                             response.AppendBody(json);
                             response.SetContentLength();
                             return response.ToString();
@@ -696,6 +682,12 @@ public class HTTPServer
 
                     return HTTPResponse.Get404DefaultNotFoundHeader().ToString(); 
                 }
+                else
+                {
+                    response = HTTPResponse.Get404DefaultNotFoundHeader();
+                    break; 
+                }
+                
                 break;
         }
         

@@ -67,7 +67,8 @@ public class ClientSend : MonoBehaviour
         // }
 
         HTTPRequest request = new HTTPRequest();
-        if(!request.ParseHeader(dropdown.options[dropdown.value].text.ToUpper() +  inputData1 + "HTTP/1.1" + "\n" + inputData2 + "\r\n\r\n" + inputData3))
+        
+        if(!request.ParseHeader(dropdown.options[dropdown.value].text.ToUpper() + " " +  inputData1.Trim() + " HTTP/1.1" + "\n" + inputData2 + "\r\n\r\n" + inputData3 ))
         {
             Debug.Log("__________ERRRORRRR--_____________");
             return; 
