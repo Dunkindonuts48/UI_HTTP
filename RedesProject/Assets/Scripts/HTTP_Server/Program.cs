@@ -13,9 +13,6 @@ class Program : MonoBehaviour
         server = new HTTPServer();
         client = new HTTPClient(); 
         
-        // var test = mUtils.ParsePostAttributes("username=admin&password=admin_pass");
-        // string pasword = test["password"]; 
-        
         // Server starts listing at a socket
         server.InitializeThread();
         

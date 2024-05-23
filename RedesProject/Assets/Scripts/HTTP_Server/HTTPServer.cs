@@ -267,7 +267,8 @@ public class HTTPServer
                         break; 
                     }
                     
-                    var user = _userManager.GetUser(username);
+                    User user = _userManager.GetUser(username);
+                    
                     if (user != null)
                     {
                         response.SetStatusLine(httpVersion, 200);
