@@ -523,7 +523,7 @@ public class HTTPServer
                     response.SetHeader("Server", "MyServer/1.0.0 (Windows)");
                     response.SetHeader("Content-Language", "en-US, es-ES");
                     response.SetHeader("Content-Type", HTTPHeader._mimeTable[".json"]);
-                    response.SetCacheControl(60);
+                    response.SetCacheControl(0);
                     response.SetBody("{\"success\":\"Cat added succesfully\"}");
                     return response.ToString();
                 }

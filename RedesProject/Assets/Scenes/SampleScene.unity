@@ -2264,12 +2264,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b97b72c567ac59b4c836b34cbfa0e756, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputField1: {fileID: 0}
-  inputField2: {fileID: 0}
-  gam: {fileID: 0}
-  inputData1: 
-  inputData2: 
-  submitButton: {fileID: 0}
 --- !u!114 &710780404
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2924,8 +2918,8 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1512461753}
   m_HandleRect: {fileID: 1512461752}
   m_Direction: 2
-  m_Value: 1.0000001
-  m_Size: 0.17646658
+  m_Value: 1.0000004
+  m_Size: 0.08809521
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -3136,8 +3130,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 21.680475, y: -2076.5115}
-  m_SizeDelta: {x: 736.38, y: 4992.9}
+  m_AnchoredPosition: {x: 21.680475, y: -4580.0645}
+  m_SizeDelta: {x: 736.38, y: 10000}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1191343914
 MonoBehaviour:
@@ -3222,7 +3216,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 0, y: 0, z: 0, w: 0}
+  m_margin: {x: 0, y: 0, z: 0, w: -12970.441}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
